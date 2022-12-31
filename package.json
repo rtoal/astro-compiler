@@ -1,0 +1,27 @@
+{
+  "name": "astro-compiler",
+  "description": "A compiler for Astro, using Ohm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "c8 mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtoal/astro-compiler.git"
+  },
+  "author": "rtoal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rtoal/astro-compiler/issues"
+  },
+  "homepage": "https://github.com/rtoal/astro-compiler#readme",
+  "devDependencies": {
+    "c8": "^7.12.0",
+    "mocha": "^10.2.0"
+  },
+  "dependencies": {
+    "ohm-js": "^16.6.0"
+  }
+}
