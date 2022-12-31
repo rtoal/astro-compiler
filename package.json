@@ -2,7 +2,7 @@
   "name": "astro-compiler",
   "description": "A compiler for Astro, using Ohm",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/astro.js",
   "type": "module",
   "scripts": {
     "test": "c8 mocha"
