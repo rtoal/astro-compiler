@@ -8,6 +8,7 @@ Astro {
   Term        = Term (~"**" "*" | "/") Factor      --binary
               | Factor
   Factor      = Primary "**" Factor                --binary
+              | "-" Primary                        --negation
               | Primary
   Primary     = id Args                            --call
               | numeral                            --num
