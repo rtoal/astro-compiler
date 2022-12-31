@@ -4,43 +4,33 @@ import analyze from "../src/analyzer.js"
 
 const semanticChecks = [
   ["variables can be printed", "x = 1; print(x);"],
-  ["variables can be reassigned", "x = 1; x = x * 5 / ((-3) + x);"],
-  [
-    "all predefined identifiers",
-    "print(sqrt(sin(cos(hypot(π,1) + cos(5.5E2)))));",
-  ],
+  ["variables can be reassigned", "x = 1; x = x ** 5 / ((-3) + x);"],
+  ["predefined identifiers", "print(sqrt(sin(cos(hypot(π,1) + cos(5.5E2)))));"],
 ]
 
 const semanticErrors = [
-  ["using undeclared identifiers", "print(x);", /x has not been declared/],
-  ["a variable used as function", "x = 1; x(2);", /Expected "="/],
+  ["using undeclared identifiers", "print(x);", /x not defined/],
+  ["a variable used as function", "x = 1; x(2);", /Procedure expected/],
   ["a function used as variable", "print(sin + 1);", /expected/],
-  [
-    "re-declared identifier",
-    "let x = 1; let x = 2;",
-    /x has already been declared/,
-  ],
-  ["an attempt to write a read-only var", "π = 3;", /π is read only/],
+  ["an attempt to write a read-only var", "π = 3;", /π is not writable/],
   ["too few arguments", "print(sin());", /Expected 1 arg\(s\), found 0/],
   ["too many arguments", "print(sin(5, 10));", /Expected 1 arg\(s\), found 2/],
 ]
 
-const sample = `let x=sqrt(9);function f(x)=3*x;while(true){x=3;print(0?f(x):2);}`
+const sample = `x2=sqrt(sin(89));print(x2+hypot(5,-1.2e+1)/cos(π));`
 
-const expected = `   1 | Program statements=[#2,#6,#10]
-   2 | VariableDeclaration variable=#3 initializer=#4
-   3 | Variable name='x' readOnly=false
-   4 | Call callee=#5 args=[9]
-   5 | Function name='sqrt' paramCount=1 readOnly=true
-   6 | FunctionDeclaration fun=#7 params=[#8] body=#9
-   7 | Function name='f' paramCount=1 readOnly=true
-   8 | Variable name='x' readOnly=true
-   9 | BinaryExpression op='*' left=3 right=#8
-  10 | WhileStatement test=true body=[#11,#12]
-  11 | Assignment target=#3 source=3
-  12 | PrintStatement argument=#13
-  13 | Conditional test=0 consequent=#14 alternate=2
-  14 | Call callee=#7 args=[#3]`
+const expected = `   1 | Program statements=[undefined,#2]
+   2 | ProcedureCall callee=#3 args=[#4]
+   3 | Procedure name='print' paramCount=1
+   4 | BinaryExpression op='+' left=#5 right=#6
+   5 | Variable name='x2' writable=true
+   6 | BinaryExpression op='/' left=#7 right=#10
+   7 | FunctionCall callee=#8 args=[5,#9]
+   8 | Function name='hypot' paramCount=2
+   9 | UnaryExpression op='-' operand=12
+  10 | FunctionCall callee=#11 args=[#12]
+  11 | Function name='cos' paramCount=1
+  12 | Variable name='π' writable=false`
 
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {

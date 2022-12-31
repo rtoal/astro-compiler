@@ -55,7 +55,7 @@ export class Procedure {
 }
 
 export const standardLibrary = Object.freeze({
-  π: new Variable("π", true),
+  π: new Variable("π", false),
   sqrt: new Function("sqrt", 1),
   sin: new Function("sin", 1),
   cos: new Function("cos", 1),

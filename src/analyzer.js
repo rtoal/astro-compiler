@@ -18,6 +18,14 @@ function check(condition, message, node) {
   if (!condition) error(message, node)
 }
 
+function checkArguments(callee, args, node) {
+  check(
+    args.length === callee.paramCount,
+    `Expected ${callee.paramCount} arg(s), found ${args.length}`,
+    node
+  )
+}
+
 export default function analyze(sourceCode) {
   // Astro is so trivial that the only required contextual information is
   // to keep track of the identifiers that have been declared.
@@ -33,24 +41,20 @@ export default function analyze(sourceCode) {
       const initializer = e.rep()
       let target = context.get(id.sourceString)
       if (!target) {
-        target = new core.Variable(id.sourceString, false)
+        target = new core.Variable(id.sourceString, true)
         context.set(id.sourceString, target)
       } else {
-        check(target instanceof Variable, "Cannot assign to functions", id)
+        check(target instanceof core.Variable, "Cannot assign to functions", id)
         check(target?.writable, `${id.sourceString} is not writable`, id)
         return new core.Assignment(target, initializer)
       }
     },
     Statement_call(id, args, _semicolon) {
-      const [callee, argList] = [context.get(id.sourceString), args.rep()]
+      const [callee, argsRep] = [context.get(id.sourceString), args.rep()]
       check(callee !== undefined, `${id.sourceString} not defined`, id)
       check(callee?.constructor === core.Procedure, "Procedure expected", id)
-      check(
-        argList.length === callee?.paramCount,
-        "Wrong number of arguments",
-        args
-      )
-      return new core.ProcedureCall(callee, argList)
+      checkArguments(callee, argsRep, args)
+      return new core.ProcedureCall(callee, argsRep)
     },
     Args(_leftParen, expressions, _rightParen) {
       return expressions.asIteration().rep()
@@ -61,8 +65,11 @@ export default function analyze(sourceCode) {
     Term_binary(left, op, right) {
       return new core.BinaryExpression(op.rep(), left.rep(), right.rep())
     },
-    Factor_binary(left, _op, right) {
+    Factor_binary(left, op, right) {
       return new core.BinaryExpression(op.rep(), left.rep(), right.rep())
+    },
+    Factor_negation(op, operand) {
+      return new core.UnaryExpression(op.rep(), operand.rep())
     },
     Primary_parens(_leftParen, e, _rightParen) {
       return e.rep()
@@ -74,19 +81,18 @@ export default function analyze(sourceCode) {
       // In Astro, functions and procedures never stand alone
       const entity = context.get(id.sourceString)
       check(entity !== undefined, `${id.sourceString} not defined`, id)
-      check(entity instanceof core.Variable, `Functions must be called`, id)
+      check(entity instanceof core.Variable, "Variable expected", id)
       return entity
     },
     Primary_call(id, args) {
-      const [entity, argList] = [context.get(id.sourceString), args.rep()]
-      check(entity !== undefined, `${id.sourceString} not defined`, id)
-      check(entity instanceof core.Function, "Function expected", id)
-      check(
-        argList.length === entity?.paramCount,
-        "Wrong number of arguments",
-        args
-      )
-      return core.FunctionCall(entity, argList)
+      const [callee, argsRep] = [context.get(id.sourceString), args.rep()]
+      check(callee !== undefined, `${id.sourceString} not defined`, id)
+      check(callee instanceof core.Function, "Function expected", id)
+      checkArguments(callee, argsRep, args)
+      return new core.FunctionCall(callee, argsRep)
+    },
+    _terminal() {
+      return this.sourceString
     },
     _iter(...nodes) {
       return nodes.map(node => node.rep())
