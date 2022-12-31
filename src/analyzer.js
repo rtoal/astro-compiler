@@ -46,8 +46,8 @@ export default function analyze(sourceCode) {
       } else {
         check(target instanceof core.Variable, "Cannot assign to functions", id)
         check(target?.writable, `${id.sourceString} is not writable`, id)
-        return new core.Assignment(target, initializer)
       }
+      return new core.Assignment(target, initializer)
     },
     Statement_call(id, args, _semicolon) {
       const [callee, argsRep] = [context.get(id.sourceString), args.rep()]
