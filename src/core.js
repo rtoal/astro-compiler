@@ -37,30 +37,30 @@ export class UnaryExpression {
 }
 
 export class Variable {
-  constructor(name, readOnly) {
-    Object.assign(this, { name, readOnly })
+  constructor(name, writable) {
+    Object.assign(this, { name, writable })
   }
 }
 
 export class Function {
-  constructor(name, paramCount, readOnly) {
-    Object.assign(this, { name, paramCount, readOnly })
+  constructor(name, paramCount) {
+    Object.assign(this, { name, paramCount })
   }
 }
 
 export class Procedure {
-  constructor(name, paramCount, readOnly) {
-    Object.assign(this, { name, paramCount, readOnly })
+  constructor(name, paramCount) {
+    Object.assign(this, { name, paramCount })
   }
 }
 
 export const standardLibrary = Object.freeze({
   π: new Variable("π", true),
-  sqrt: new Function("sqrt", 1, true),
-  sin: new Function("sin", 1, true),
-  cos: new Function("cos", 1, true),
-  hypot: new Function("hypot", 2, true),
-  print: new Procedure("print", 1, true),
+  sqrt: new Function("sqrt", 1),
+  sin: new Function("sin", 1),
+  cos: new Function("cos", 1),
+  hypot: new Function("hypot", 2),
+  print: new Procedure("print", 1),
 })
 
 // Return a compact and pretty string representation of the node graph,

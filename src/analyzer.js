@@ -19,34 +19,38 @@ function check(condition, message, node) {
 }
 
 export default function analyze(sourceCode) {
+  // Astro is so trivial that the only required contextual information is
+  // to keep track of the identifiers that have been declared.
   const context = new Map()
 
+  // The compiler front end analyzes the source code and produces a graph of
+  // entities (defined in the core module) "rooted" at the Program entity.
   const analyzer = astroGrammar.createSemantics().addOperation("rep", {
     Program(statements) {
       return new core.Program(statements.rep())
     },
     Statement_assignment(id, _eq, e, _semicolon) {
       const initializer = e.rep()
-      let entity = context.get(id.sourceString)
-      if (!entity) {
-        entity = new core.Variable(id.sourceString, "NUM", "RW")
-        context.set(id.sourceString, entity)
+      let target = context.get(id.sourceString)
+      if (!target) {
+        target = new core.Variable(id.sourceString, false)
+        context.set(id.sourceString, target)
       } else {
-        check(entity?.type === "NUM", "Cannot assign", id)
-        check(entity?.access === "RW", `${id.sourceString} not writable`, id)
-        return new core.Assignment(variable, initializer)
+        check(target instanceof Variable, "Cannot assign to functions", id)
+        check(target?.writable, `${id.sourceString} is not writable`, id)
+        return new core.Assignment(target, initializer)
       }
     },
     Statement_call(id, args, _semicolon) {
-      const [entity, argList] = [context.get(id.sourceString), args.rep()]
-      check(entity !== undefined, `${id.sourceString} not defined`, id)
-      check(entity?.constructor === core.Procedure, "Procedure expected", id)
+      const [callee, argList] = [context.get(id.sourceString), args.rep()]
+      check(callee !== undefined, `${id.sourceString} not defined`, id)
+      check(callee?.constructor === core.Procedure, "Procedure expected", id)
       check(
-        argList.length === entity?.paramCount,
+        argList.length === callee?.paramCount,
         "Wrong number of arguments",
         args
       )
-      return new core.ProcedureCall(entity, argList)
+      return new core.ProcedureCall(callee, argList)
     },
     Args(_leftParen, expressions, _rightParen) {
       return expressions.asIteration().rep()
@@ -70,13 +74,13 @@ export default function analyze(sourceCode) {
       // In Astro, functions and procedures never stand alone
       const entity = context.get(id.sourceString)
       check(entity !== undefined, `${id.sourceString} not defined`, id)
-      check(entity?.type === "NUM", `Expected type number`, id)
+      check(entity instanceof core.Variable, `Functions must be called`, id)
       return entity
     },
     Primary_call(id, args) {
       const [entity, argList] = [context.get(id.sourceString), args.rep()]
       check(entity !== undefined, `${id.sourceString} not defined`, id)
-      check(entity?.type === "FUNC", "Function expected", id)
+      check(entity instanceof core.Function, "Function expected", id)
       check(
         argList.length === entity?.paramCount,
         "Wrong number of arguments",
