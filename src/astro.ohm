@@ -1,0 +1,20 @@
+Astro {
+  Program     = Statement+
+  Statement   = id "=" Exp ";"                     --assignment
+              | id Args ";"                        --call
+  Args        = "(" ListOf<Exp, ","> ")"
+  Exp         = Exp ("+" | "-") Term               --binary
+              | Term
+  Term        = Term (~"**" "*" | "/") Factor      --binary
+              | Factor
+  Factor      = Primary "**" Factor                --binary
+              | Primary
+  Primary     = id Args                            --call
+              | numeral                            --num
+              | id                                 --id
+              | "(" Exp ")"                        --parens
+
+  numeral     = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
+  id          = letter (letter | digit | "_")*
+  space      += "//" (~"\n" any)*                  --comment
+}
