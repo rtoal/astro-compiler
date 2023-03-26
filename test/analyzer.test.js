@@ -1,5 +1,5 @@
-import util from "util"
 import assert from "assert/strict"
+import * as core from "../src/core.js"
 import analyze from "../src/analyzer.js"
 
 const semanticChecks = [
@@ -20,23 +20,28 @@ const semanticErrors = [
 
 const sample = `x2=sqrt(sin(89));print(x2+hypot(5,-1.2e+1)/cos(π));`
 
-const expected = `   1 | Program statements=[#2,#8]
-   2 | Assignment target=#3 source=#4
-   3 | Variable name='x2' writable=true
-   4 | FunctionCall callee=#5 args=[#6]
-   5 | Function name='sqrt' paramCount=1
-   6 | FunctionCall callee=#7 args=[89]
-   7 | Function name='sin' paramCount=1
-   8 | ProcedureCall callee=#9 args=[#10]
-   9 | Procedure name='print' paramCount=1
-  10 | BinaryExpression op='+' left=#3 right=#11
-  11 | BinaryExpression op='/' left=#12 right=#15
-  12 | FunctionCall callee=#13 args=[5,#14]
-  13 | Function name='hypot' paramCount=2
-  14 | UnaryExpression op='-' operand=12
-  15 | FunctionCall callee=#16 args=[#17]
-  16 | Function name='cos' paramCount=1
-  17 | Variable name='π' writable=false`
+const expected = new core.Program([
+  new core.Assignment(
+    new core.Variable("x2", true),
+    new core.FunctionCall(core.standardLibrary.sqrt, [
+      new core.FunctionCall(core.standardLibrary.sin, [89]),
+    ])
+  ),
+  new core.ProcedureCall(core.standardLibrary.print, [
+    new core.BinaryExpression(
+      "+",
+      new core.Variable("x2", true),
+      new core.BinaryExpression(
+        "/",
+        new core.FunctionCall(core.standardLibrary.hypot, [
+          5,
+          new core.UnaryExpression("-", 12),
+        ]),
+        new core.FunctionCall(core.standardLibrary.cos, [core.standardLibrary.π])
+      )
+    ),
+  ]),
+])
 
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {
@@ -49,7 +54,10 @@ describe("The analyzer", () => {
       assert.throws(() => analyze(source), errorMessagePattern)
     })
   }
+  it(`throws on syntax errors`, () => {
+    assert.throws(() => analyze("this Haz #@ SYntAx Errz))$"))
+  })
   it(`produces the expected graph for the simple sample program`, () => {
-    assert.deepEqual(util.format(analyze(sample)), expected)
+    assert.deepEqual(analyze(sample), expected)
   })
 })
