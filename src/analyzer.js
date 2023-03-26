@@ -20,7 +20,7 @@ class Context {
     // nesting of scopes.
     this.locals = new Map()
   }
-  check(condition, message, { at } = {}) {
+  check(condition, message, { at }) {
     if (!condition) error(message, at)
   }
   add(name, entity) {
@@ -34,7 +34,7 @@ class Context {
     // was not of the expected kind (Variable, Function, Procedure).
     const entity = this.locals.get(id.sourceString)
     if (!expecting) return entity
-    this.check(entity, `${id.sourceString} not defined`)
+    this.check(entity, `${id.sourceString} not defined`, { at: id })
     this.checkKind(entity, expecting, { at: id })
     return entity
   }
