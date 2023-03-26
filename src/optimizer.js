@@ -28,6 +28,7 @@ const optimizers = {
     return s
   },
   ProcedureCall(c) {
+    c.callee = optimize(c.callee)
     c.args = optimize(c.args)
     return c
   },
@@ -55,6 +56,8 @@ const optimizers = {
           return e.left * e.right
         } else if (e.op === "/") {
           return e.left / e.right
+        } else if (e.op === "%") {
+          return e.left % e.right
         } else if (e.op === "**" && !(e.left === 0 && e.right == 0)) {
           return e.left ** e.right
         }
@@ -102,9 +105,6 @@ const optimizers = {
   },
   Number(n) {
     return n
-  },
-  Boolean(b) {
-    return b
   },
   Array(a) {
     // Optimizing arrays involves flattening an removing nulls
