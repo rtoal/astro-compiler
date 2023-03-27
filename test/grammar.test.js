@@ -4,7 +4,7 @@ import * as ohm from "ohm-js"
 
 const syntaxChecks = [
   ["all numeric literal forms", "print(8 * 89.123);"],
-  ["complex expressions", "print(83 * ((((-((((13 / 21)))))))) + 1 - 0);"],
+  ["complex expressions", "print(83 % ((((-((((13 / 21)))))))) + 1 - 0);"],
   ["all unary operators", "print (-3);"],
   ["all binary operators", "print(z * 1 / dog ** 3 + 4 - 5);"],
   ["end of program inside comment", "print(0); // yay"],
