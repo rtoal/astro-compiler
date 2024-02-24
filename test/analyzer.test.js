@@ -20,24 +20,21 @@ const semanticErrors = [
 
 const sample = `x2=sqrt(sin(89));print(x2+hypot(5,-1.2e+1)/cos(π));`
 
-const expected = new core.Program([
-  new core.Assignment(
-    new core.Variable("x2", true),
-    new core.FunctionCall(core.standardLibrary.sqrt, [
-      new core.FunctionCall(core.standardLibrary.sin, [89]),
+const expected = core.program([
+  core.assignment(
+    core.variable("x2", true),
+    core.functionCall(core.standardLibrary.sqrt, [
+      core.functionCall(core.standardLibrary.sin, [89]),
     ])
   ),
-  new core.ProcedureCall(core.standardLibrary.print, [
-    new core.BinaryExpression(
+  core.procedureCall(core.standardLibrary.print, [
+    core.binary(
       "+",
-      new core.Variable("x2", true),
-      new core.BinaryExpression(
+      core.variable("x2", true),
+      core.binary(
         "/",
-        new core.FunctionCall(core.standardLibrary.hypot, [
-          5,
-          new core.UnaryExpression("-", 12),
-        ]),
-        new core.FunctionCall(core.standardLibrary.cos, [core.standardLibrary.π])
+        core.functionCall(core.standardLibrary.hypot, [5, core.unary("-", 12)]),
+        core.functionCall(core.standardLibrary.cos, [core.standardLibrary.π])
       )
     ),
   ]),

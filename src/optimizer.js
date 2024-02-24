@@ -9,21 +9,21 @@
 //   - constant folding
 //   - some strength reductions (+0, -0, *0, *1, etc.)
 
-import { UnaryExpression } from "./core.js"
+import { unary } from "./core.js"
 
 export default function optimize(node) {
-  return optimizers[node.constructor.name](node)
+  return optimizers?.[node.kind]?.(node) ?? node
 }
 
 const optimizers = {
   Program(p) {
-    p.statements = optimize(p.statements)
+    p.statements = p.statements.flatMap(optimize)
     return p
   },
   Assignment(s) {
     s.source = optimize(s.source)
     if (s.source === s.target) {
-      return null
+      return []
     }
     return s
   },
@@ -34,13 +34,19 @@ const optimizers = {
   },
   FunctionCall(c) {
     c.callee = optimize(c.callee)
-    c.args = optimize(c.args)
+    c.args = c.args.map(optimize)
     if (c.args.length === 1 && typeof c.args[0] == "number") {
       if (c.callee.name === "sqrt") return Math.sqrt(c.args[0])
       if (c.callee.name === "sin") return Math.sin(c.args[0])
       if (c.callee.name === "cos") return Math.cos(c.args[0])
     }
-    // TODO optimize hypot
+    if (
+      c.args.length === 2 &&
+      typeof c.args[0] == "number" &&
+      typeof c.args[1] == "number"
+    ) {
+      if (c.callee.name === "hypot") return Math.hypot(c.args[0], c.args[1])
+    }
     return c
   },
   BinaryExpression(e) {
@@ -66,7 +72,7 @@ const optimizers = {
       } else if (e.left === 1 && e.op === "*") {
         return e.right
       } else if (e.left === 0 && e.op === "-") {
-        return new UnaryExpression("-", e.right)
+        return unary("-", e.right)
       } else if (e.left === 0 && ["*", "/"].includes(e.op)) {
         return 0
       } else if (e.op === "**" && e.left === 1) {
@@ -93,21 +99,5 @@ const optimizers = {
       }
     }
     return e
-  },
-  Variable(v) {
-    return v
-  },
-  Function(f) {
-    return f
-  },
-  Procedure(p) {
-    return p
-  },
-  Number(n) {
-    return n
-  },
-  Array(a) {
-    // Optimizing arrays involves flattening an removing nulls
-    return a.flatMap(optimize).filter(s => s !== null)
   },
 }

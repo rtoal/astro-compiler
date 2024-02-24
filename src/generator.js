@@ -24,12 +24,12 @@ export default function generate(program) {
     }
   })(new Map())
 
-  const gen = node => generators[node.constructor.name](node)
+  const gen = node => generators?.[node?.kind]?.(node) ?? node
 
   const generators = {
     Program(p) {
       output.push("") // leave one line open for variable declarations
-      gen(p.statements)
+      p.statements.forEach(gen)
     },
     Variable(v) {
       if (v === standardLibrary.π) return "Math.PI"
@@ -55,12 +55,12 @@ export default function generate(program) {
       output.push(`${target} = ${source};`)
     },
     ProcedureCall(c) {
-      const args = gen(c.args)
+      const args = c.args.map(gen)
       const callee = gen(c.callee)
       output.push(`${callee}(${args.join(",")});`)
     },
     FunctionCall(c) {
-      const args = gen(c.args)
+      const args = c.args.map(gen)
       const callee = gen(c.callee)
       return `${callee}(${args.join(",")})`
     },
@@ -69,12 +69,6 @@ export default function generate(program) {
     },
     UnaryExpression(e) {
       return `${e.op}(${gen(e.operand)})`
-    },
-    Number(e) {
-      return e
-    },
-    Array(a) {
-      return a.map(gen)
     },
   }
 

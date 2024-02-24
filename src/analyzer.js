@@ -39,7 +39,7 @@ class Context {
     return entity
   }
   checkKind(entity, kind, { at }) {
-    this.check(entity?.constructor === kind, `${kind.name} expected`, { at })
+    this.check(entity?.kind === kind, `${kind} expected`, { at })
   }
   checkIsWritable(variable, { at }) {
     this.check(variable.writable, `${variable.name} is not writable`, { at })
@@ -62,42 +62,42 @@ export default function analyze(sourceCode) {
   // entities (defined in the core module) "rooted" at the Program entity.
   const analyzer = astroGrammar.createSemantics().addOperation("rep", {
     Program(statements) {
-      return new core.Program(statements.rep())
+      return core.program(statements.rep())
     },
     Statement_assignment(id, _eq, exp, _semicolon) {
       const initializer = exp.rep()
       let target = context.lookup(id)
       if (!target) {
         // Not there already, make a new variable and add it
-        target = new core.Variable(id.sourceString, true)
+        target = core.variable(id.sourceString, true)
         context.add(id.sourceString, target)
       } else {
         // Something was found, whatever it was must be a writable variable
-        context.checkKind(target, core.Variable, { at: id })
+        context.checkKind(target, "Variable", { at: id })
         context.checkIsWritable(target, { at: id })
       }
-      return new core.Assignment(target, initializer)
+      return core.assignment(target, initializer)
     },
     Statement_call(id, exps, _semicolon) {
-      const callee = context.lookup(id, { expecting: core.Procedure })
+      const callee = context.lookup(id, { expecting: "Procedure" })
       const args = exps.rep()
       context.checkArguments(callee, args, { at: exps })
-      return new core.ProcedureCall(callee, args)
+      return core.procedureCall(callee, args)
     },
     Args(_leftParen, exps, _rightParen) {
       return exps.asIteration().rep()
     },
     Exp_binary(exp, op, term) {
-      return new core.BinaryExpression(op.rep(), exp.rep(), term.rep())
+      return core.binary(op.rep(), exp.rep(), term.rep())
     },
     Term_binary(term, op, factor) {
-      return new core.BinaryExpression(op.rep(), term.rep(), factor.rep())
+      return core.binary(op.rep(), term.rep(), factor.rep())
     },
     Factor_binary(primary, op, factor) {
-      return new core.BinaryExpression(op.rep(), primary.rep(), factor.rep())
+      return core.binary(op.rep(), primary.rep(), factor.rep())
     },
     Factor_negation(op, primary) {
-      return new core.UnaryExpression(op.rep(), primary.rep())
+      return core.unary(op.rep(), primary.rep())
     },
     Primary_parens(_open, exp, _close) {
       return exp.rep()
@@ -107,13 +107,13 @@ export default function analyze(sourceCode) {
     },
     Primary_id(id) {
       // In Astro, functions and procedures never stand alone, so must be a var
-      return context.lookup(id, { expecting: core.Variable })
+      return context.lookup(id, { expecting: "Variable" })
     },
     Primary_call(id, exps) {
-      const callee = context.lookup(id, { expecting: core.Function })
+      const callee = context.lookup(id, { expecting: "Function" })
       const args = exps.rep()
       context.checkArguments(callee, args, { at: exps })
-      return new core.FunctionCall(callee, args)
+      return core.functionCall(callee, args)
     },
     _terminal() {
       return this.sourceString

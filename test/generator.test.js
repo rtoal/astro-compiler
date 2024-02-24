@@ -8,16 +8,18 @@ function dedent(s) {
 }
 
 const sample = dedent`
-  x = sin(hypot(2, 0) ** 3.1);
+  y = 8;
+  x = sin(hypot(π, y) ** 3.1);
   x = 5 * sqrt(x) / -x + x - cos(π);
   print(x);
 `
 
 const expected = dedent`
-  let x_1;
-  x_1 = Math.sin((Math.hypot(2,0) ** 3.1));
-  x_1 = ((((5 * Math.sqrt(x_1)) / -(x_1)) + x_1) - Math.cos(Math.PI));
-  console.log(x_1);
+  let y_1, x_2;
+  y_1 = 8;
+  x_2 = Math.sin((Math.hypot(Math.PI,y_1) ** 3.1));
+  x_2 = ((((5 * Math.sqrt(x_2)) / -(x_2)) + x_2) - Math.cos(Math.PI));
+  console.log(x_2);
 `
 
 describe("The code generator", () => {
