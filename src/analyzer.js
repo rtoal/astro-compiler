@@ -1,14 +1,10 @@
-import fs from "fs"
-import * as ohm from "ohm-js"
 import * as core from "./core.js"
-
-const astroGrammar = ohm.grammar(fs.readFileSync("src/astro.ohm"))
 
 // Throw an error message that takes advantage of Ohm's messaging.
 // If you supply an Ohm tree node as the second parameter, this will
 // use Ohm's cool reporting mechanism.
 function error(message, node) {
-  const prefix = `${node?.source.getLineAndColumnMessage() ?? ""}`
+  const prefix = `${node?.source.getLineAndColumnMessage()}`
   throw new Error(`${prefix}${message}`)
 }
 
@@ -53,14 +49,14 @@ class Context {
   }
 }
 
-export default function analyze(sourceCode) {
+export default function analyze(match) {
   // Astro is so trivial that the only required contextual information is
   // to keep track of the identifiers that have been declared.
   const context = new Context()
 
   // The compiler front end analyzes the source code and produces a graph of
   // entities (defined in the core module) "rooted" at the Program entity.
-  const analyzer = astroGrammar.createSemantics().addOperation("rep", {
+  const analyzer = match.matcher.grammar.createSemantics().addOperation("rep", {
     Program(statements) {
       return core.program(statements.rep())
     },
@@ -126,7 +122,5 @@ export default function analyze(sourceCode) {
   for (const [name, entity] of Object.entries(core.standardLibrary)) {
     context.add(name, entity)
   }
-  const match = astroGrammar.match(sourceCode)
-  if (!match.succeeded()) error(match.message)
   return analyzer(match).rep()
 }

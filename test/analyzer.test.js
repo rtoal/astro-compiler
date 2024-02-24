@@ -1,6 +1,7 @@
-import assert from "assert/strict"
-import * as core from "../src/core.js"
+import assert from "node:assert/strict"
+import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
+import * as core from "../src/core.js"
 
 const semanticChecks = [
   ["variables can be printed", "x = 1; print(x);"],
@@ -43,18 +44,15 @@ const expected = core.program([
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {
     it(`recognizes ${scenario}`, () => {
-      assert.ok(analyze(source))
+      assert.ok(analyze(parse(source)))
     })
   }
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
     it(`throws on ${scenario}`, () => {
-      assert.throws(() => analyze(source), errorMessagePattern)
+      assert.throws(() => analyze(parse(source)), errorMessagePattern)
     })
   }
-  it(`throws on syntax errors`, () => {
-    assert.throws(() => analyze("this Haz #@ SYntAx Errz))$"))
-  })
   it(`produces the expected graph for the simple sample program`, () => {
-    assert.deepEqual(analyze(sample), expected)
+    assert.deepEqual(analyze(parse(sample)), expected)
   })
 })

@@ -1,4 +1,5 @@
 import assert from "assert/strict"
+import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 import optimize from "../src/optimizer.js"
 import * as core from "../src/core.js"
@@ -13,7 +14,7 @@ const negate = x => core.unary("-", x)
 const program = (...statements) => core.program(statements)
 
 function expression(e) {
-  return analyze(`x=1; print(${e});`).statements[1].args[0]
+  return analyze(parse(`x=1; print(${e});`)).statements[1].args[0]
 }
 
 const tests = [
@@ -52,7 +53,7 @@ const tests = [
   ],
   [
     "removes x=x",
-    analyze("x=1; x=x; print(x);"),
+    analyze(parse("x=1; x=x; print(x);")),
     program(core.assignment(x, 1), core.procedureCall(print, [x], true)),
   ],
 ]

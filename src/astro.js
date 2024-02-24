@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
-import fs from "fs/promises"
-import process from "process"
+import fs from "node:fs/promises"
+import stringify from "graph-stringify"
 import compile from "./compiler.js"
 
 const help = `Astro compiler
@@ -10,15 +10,17 @@ Syntax: node astro.js <filename> <outputType>
 
 Prints to stdout according to <outputType>, which must be one of:
 
-  analyzed   the analyzed representation
-  optimized  the optimized analyzed representation
+  parsed     a message that the program was matched ok by the grammar
+  analyzed   the statically analyzed representation
+  optimized  the optimized semantically analyzed representation
   js         the translation to JavaScript
 `
 
 async function compileFromFile(filename, outputType) {
   try {
     const buffer = await fs.readFile(filename)
-    console.dir(compile(buffer.toString(), outputType), { depth: null })
+    const compiled = compile(buffer.toString(), outputType)
+    console.log(stringify(compiled, "kind") || compiled)
   } catch (e) {
     console.error(`\u001b[31m${e}\u001b[39m`)
     process.exitCode = 1

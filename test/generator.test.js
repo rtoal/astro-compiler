@@ -1,4 +1,5 @@
-import assert from "assert/strict"
+import assert from "node:assert/strict"
+import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 import optimize from "../src/optimizer.js"
 import generate from "../src/generator.js"
@@ -24,7 +25,7 @@ const expected = dedent`
 
 describe("The code generator", () => {
   it(`produces the expected output for the small program`, done => {
-    const actual = generate(optimize(analyze(sample)))
+    const actual = generate(optimize(analyze(parse(sample))))
     assert.deepEqual(actual, expected)
     done()
   })
