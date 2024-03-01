@@ -1,7 +1,5 @@
-// Optimizer
-//
-// This module exports a single function to perform machine-independent
-// optimizations on the analyzed semantic graph.
+// The optimizer module exports a single function, optimize(node), to perform
+// machine-independent optimizations on the analyzed semantic representation.
 //
 // The only optimizations supported here are:
 //

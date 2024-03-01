@@ -1,7 +1,6 @@
-// Code Generator Astro -> JavaScript
-//
-// Invoke generate(program) with the program node to get back the JavaScript
-// translation as a string.
+// This code generator exports a single function, generate(program), which
+// accepts a program representation and returns the JavaScript translation
+// as a string.
 
 import { standardLibrary } from "./core.js"
 
