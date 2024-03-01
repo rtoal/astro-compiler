@@ -38,7 +38,7 @@ export default function generate(program) {
       if (f === standardLibrary.sqrt) return "call double @llvm.sqrt.f64"
       if (f === standardLibrary.sin) return "call double @llvm.sin.f64"
       if (f === standardLibrary.cos) return "call double @llvm.cos.f64"
-      if (f === standardLibrary.hypot) return "call double @llvm.cos.hypot"
+      if (f === standardLibrary.hypot) return "call double @llvm.hypot.f64"
     },
     Assignment(s) {
       // Interestingly, nothing has to be outputted here! The output of the
@@ -52,10 +52,11 @@ export default function generate(program) {
       // Print requires an extra argument for the format string
       const format =
         "i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format, i64 0, i64 0)"
-      source = output.push(`${gen(c.callee)}(${format}, ${arg});`)
+      output.push(`call i64 (i8*, ...) @printf(${format}, ${arg});`)
     },
     FunctionCall(c) {
-      const args = gen(c.args)
+      const args = c.args
+        .map(gen)
         .map(a => `double ${a}`)
         .join(", ")
       let source = `${gen(c.callee)}(${args})`

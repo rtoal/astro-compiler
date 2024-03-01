@@ -56,9 +56,7 @@ export default function generate(program) {
       output.push(`${target} = ${source};`)
     },
     Print(s) {
-      const format = `"${Array(c.args.length).fill("%g").join(" ")}\\n"`
-      const allArgs = [format, ...args].join(", ")
-      output.push(`printf(${allArgs});`)
+      output.push(`printf("%g\\n", ${gen(s.arg)});`)
     },
     FunctionCall(c) {
       const args = c.args.map(gen)
