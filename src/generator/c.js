@@ -32,7 +32,7 @@ export default function generate(program) {
       output.push("#include <math.h>")
       output.push("int main() {")
       output.push("")
-      gen(p.statements)
+      p.statements.forEach(gen)
       output.push("return 0;")
       output.push("}")
     },
@@ -74,7 +74,7 @@ export default function generate(program) {
   }
 
   gen(program)
-  // Fifth line declares all the variables (required in JS, not in Astro)
-  output[0] = assigned.size > 0 ? `let ${[...assigned].join(", ")};` : ""
+  // Fifth line declares all the variables (required in C, not in Astro)
+  output[4] = assigned.size > 0 ? `double ${[...assigned].join(", ")};` : ""
   return output.join("\n")
 }
