@@ -2,7 +2,7 @@
 // accepts a program representation and returns the JavaScript translation
 // as a string.
 
-import { standardLibrary } from "./core.js"
+import { standardLibrary } from "../core.js"
 
 export default function generate(program) {
   const output = []

@@ -1,7 +1,7 @@
 import parse from "./parser.js"
 import analyze from "./analyzer.js"
 import optimize from "./optimizer.js"
-import generate from "./generator.js"
+import generate from "./generator/index.js"
 
 export default function compile(source, outputType) {
   const options = ["parsed", "analyzed", "optimized", "js", "llvm", "c"]
