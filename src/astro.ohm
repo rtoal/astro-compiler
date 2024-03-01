@@ -1,21 +1,22 @@
 Astro {
   Program     = Statement+
   Statement   = id "=" Exp ";"                         --assignment
-              | id Args ";"                            --call
-  Args        = "(" ListOf<Exp, ","> ")"
+              | print Exp ";"                          --print
   Exp         = Exp ("+" | "-") Term                   --binary
               | Term
-  Term        = Term (~"**" "*" | "/" | "%") Factor    --binary
+  Term        = Term ("*" | "/" | "%") Factor          --binary
               | Factor
   Factor      = Primary "**" Factor                    --binary
               | "-" Primary                            --negation
               | Primary
-  Primary     = id Args                                --call
+  Primary     = id "(" ListOf<Exp, ","> ")"            --call
               | numeral                                --num
               | id                                     --id
               | "(" Exp ")"                            --parens
 
   numeral     = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
-  id          = letter (letter | digit | "_")*
+  print       = "print" ~idchar
+  idchar      = letter | digit | "_"
+  id          = ~print letter idchar*
   space      += "//" (~"\n" any)*                      --comment
 }

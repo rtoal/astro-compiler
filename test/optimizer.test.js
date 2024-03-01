@@ -9,12 +9,11 @@ const x = core.variable("x", true)
 const neg = x => core.unary("-", x)
 const power = (x, y) => core.binary("**", x, y)
 const sqrt = core.standardLibrary.sqrt
-const print = core.standardLibrary.print
 const negate = x => core.unary("-", x)
 const program = (...statements) => core.program(statements)
 
 function expression(e) {
-  return analyze(parse(`x=1; print(${e});`)).statements[1].args[0]
+  return analyze(parse(`x=1; print(${e});`)).statements[1].arg
 }
 
 const tests = [
@@ -54,7 +53,7 @@ const tests = [
   [
     "removes x=x",
     analyze(parse("x=1; x=x; print(x);")),
-    program(core.assignment(x, 1), core.procedureCall(print, [x], true)),
+    program(core.assignment(x, 1), core.print(x)),
   ],
 ]
 

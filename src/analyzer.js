@@ -1,36 +1,41 @@
+// The semantic analyzer exports a single function, analyze(match), that
+// accepts a grammar match object (the CST) from Ohm and produces the
+// internal representation of the program (pretty close to what is usually
+// called the AST). This representation also includes entities from the
+// standard library, as needed.
+
 import * as core from "./core.js"
 
-// The single gate for error checking. Pass in a condition that must be true.
-// Use errorLocation to give contextual information about the error that will
-// appear: this should be an object whose "at" property is a parse tree node.
-// Ohm's getLineAndColumnMessage will be used to prefix the error message.
-function must(condition, message, errorLocation) {
-  if (!condition) {
-    const prefix = errorLocation.at.source.getLineAndColumnMessage()
-    throw new Error(`${prefix}${message}`)
-  }
-}
-
 class Context {
-  constructor() {
-    // Astro is so simple the only context is the map of declared
-    // entities. The map maps names to entities. There is no current
-    // function, current loop, or any such thing. There is also no
-    // nesting of scopes.
-    this.locals = new Map()
+  constructor({ locals = {} }) {
+    this.locals = new Map(Object.entries(locals))
   }
   add(name, entity) {
     this.locals.set(name, entity)
   }
-  lookup(id) {
-    return this.locals.get(id.sourceString)
+  lookup(name) {
+    return this.locals.get(name)
   }
 }
 
 export default function analyze(match) {
-  // Astro is so trivial that the only required contextual information is
-  // to keep track of the identifiers that have been declared.
-  const context = new Context()
+  // Track the context manually via a simple variable. The initial context
+  // contains the mappings from the standard library. Add to this context
+  // as necessary. When needing to descent into a new scope, create a new
+  // context with the current context as its parent. When leaving a scope,
+  // reset this variable to the parent context.
+  let context = new Context({ locals: core.standardLibrary })
+
+  // The single gate for error checking. Pass in a condition that must be true.
+  // Use errorLocation to give contextual information about the error that will
+  // appear: this should be an object whose "at" property is a parse tree node.
+  // Ohm's getLineAndColumnMessage will be used to prefix the error message.
+  function must(condition, message, errorLocation) {
+    if (!condition) {
+      const prefix = errorLocation.at.source.getLineAndColumnMessage()
+      throw new Error(`${prefix}${message}`)
+    }
+  }
 
   function mustHaveBeenFound(entity, name, at) {
     must(entity, `Identifier ${name} not defined`, at)
@@ -38,10 +43,6 @@ export default function analyze(match) {
 
   function mustBeAVariable(entity, at) {
     must(entity?.kind === "Variable", `Variable expected`, at)
-  }
-
-  function mustBeAProcedure(entity, at) {
-    must(entity?.kind === "Procedure", `Procedure expected`, at)
   }
 
   function mustBeAFunction(entity, at) {
@@ -68,7 +69,7 @@ export default function analyze(match) {
     },
     Statement_assignment(id, _eq, exp, _semicolon) {
       const initializer = exp.rep()
-      let target = context.lookup(id)
+      let target = context.lookup(id.sourceString)
       if (!target) {
         // Not there already, make a new variable and add it
         target = core.variable(id.sourceString, true)
@@ -80,15 +81,8 @@ export default function analyze(match) {
       }
       return core.assignment(target, initializer)
     },
-    Statement_call(id, exps, _semicolon) {
-      const callee = context.lookup(id)
-      mustBeAProcedure(callee, { at: id })
-      const args = exps.rep()
-      mustHaveCorrectArgumentCount(callee, args, { at: exps })
-      return core.procedureCall(callee, args)
-    },
-    Args(_leftParen, exps, _rightParen) {
-      return exps.asIteration().rep()
+    Statement_print(_print, exp, _semicolon) {
+      return core.print(exp.rep())
     },
     Exp_binary(exp, op, term) {
       return core.binary(op.rep(), exp.rep(), term.rep())
@@ -109,16 +103,16 @@ export default function analyze(match) {
       return Number(num.sourceString)
     },
     Primary_id(id) {
-      // In Astro, functions and procedures never stand alone, so must be a var
-      const entity = context.lookup(id)
+      // In Astro, functions never stand alone, so must be a var
+      const entity = context.lookup(id.sourceString)
       mustHaveBeenFound(entity, id.sourceString, { at: id })
       mustBeAVariable(entity, { at: id })
       return entity
     },
-    Primary_call(id, exps) {
-      const callee = context.lookup(id)
+    Primary_call(id, _open, exps, _close) {
+      const callee = context.lookup(id.sourceString)
       mustBeAFunction(callee, { at: id })
-      const args = exps.rep()
+      const args = exps.asIteration().rep()
       mustHaveCorrectArgumentCount(callee, args, { at: exps })
       return core.functionCall(callee, args)
     },
@@ -130,8 +124,5 @@ export default function analyze(match) {
     },
   })
 
-  for (const [name, entity] of Object.entries(core.standardLibrary)) {
-    context.add(name, entity)
-  }
   return analyzer(match).rep()
 }

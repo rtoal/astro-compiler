@@ -4,7 +4,8 @@ import optimize from "./optimizer.js"
 import generate from "./generator.js"
 
 export default function compile(source, outputType) {
-  if (!["parsed", "analyzed", "optimized", "js"].includes(outputType)) {
+  const options = ["parsed", "analyzed", "optimized", "js", "llvm", "c"]
+  if (!options.includes(outputType)) {
     throw new Error("Unknown output type")
   }
   const match = parse(source)
@@ -13,5 +14,5 @@ export default function compile(source, outputType) {
   if (outputType === "analyzed") return analyzed
   const optimized = optimize(analyzed)
   if (outputType === "optimized") return optimized
-  return generate(optimized)
+  return generate(optimized, outputType)
 }

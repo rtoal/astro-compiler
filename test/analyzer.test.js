@@ -11,9 +11,7 @@ const semanticChecks = [
 
 const semanticErrors = [
   ["using undeclared identifiers", "print(x);", /x not defined/],
-  ["a variable used as procedure", "x = 1; x(2);", /Procedure expected/],
   ["a variable used as function", "x = 1; print(x(5));", /Function expected/],
-  ["a procedure used as variable", "print(sin + 1);", /Variable expected/],
   ["an attempt to write a read-only var", "π = 3;", /π is not writable/],
   ["too few arguments", "print(sin());", /Expected 1 arg\(s\), found 0/],
   ["too many arguments", "print(sin(5, 10));", /Expected 1 arg\(s\), found 2/],
@@ -28,7 +26,7 @@ const expected = core.program([
       core.functionCall(core.standardLibrary.sin, [89]),
     ])
   ),
-  core.procedureCall(core.standardLibrary.print, [
+  core.print(
     core.binary(
       "+",
       core.variable("x2", true),
@@ -37,8 +35,8 @@ const expected = core.program([
         core.functionCall(core.standardLibrary.hypot, [5, core.unary("-", 12)]),
         core.functionCall(core.standardLibrary.cos, [core.standardLibrary.π])
       )
-    ),
-  ]),
+    )
+  ),
 ])
 
 describe("The analyzer", () => {

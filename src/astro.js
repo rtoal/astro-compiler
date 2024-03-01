@@ -1,5 +1,3 @@
-#! /usr/bin/env node
-
 import fs from "node:fs/promises"
 import stringify from "graph-stringify"
 import compile from "./compiler.js"
@@ -14,6 +12,8 @@ Prints to stdout according to <outputType>, which must be one of:
   analyzed   the statically analyzed representation
   optimized  the optimized semantically analyzed representation
   js         the translation to JavaScript
+  llvm       the translation to LLVM IR
+  c          the translation to C
 `
 
 async function compileFromFile(filename, outputType) {

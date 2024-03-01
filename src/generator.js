@@ -44,20 +44,14 @@ export default function generate(program) {
         [standardLibrary.hypot, "Math.hypot"],
       ]).get(f)
     },
-    Procedure(p) {
-      // The only procedures in Astro are in the standard library.
-      return new Map([[standardLibrary.print, "console.log"]]).get(p)
-    },
     Assignment(s) {
       const source = gen(s.source)
       const target = gen(s.target)
       assigned.add(target)
       output.push(`${target} = ${source};`)
     },
-    ProcedureCall(c) {
-      const args = c.args.map(gen)
-      const callee = gen(c.callee)
-      output.push(`${callee}(${args.join(",")});`)
+    Print(s) {
+      output.push(`console.log(${gen(s.arg)});`)
     },
     FunctionCall(c) {
       const args = c.args.map(gen)

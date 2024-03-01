@@ -27,10 +27,9 @@ const optimizers = {
     }
     return s
   },
-  ProcedureCall(c) {
-    c.callee = optimize(c.callee)
-    c.args = optimize(c.args)
-    return c
+  Print(p) {
+    p.arg = optimize(p.arg)
+    return p
   },
   FunctionCall(c) {
     c.callee = optimize(c.callee)
